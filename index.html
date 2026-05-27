@@ -1,0 +1,369 @@
+<!-- Reading the Gap, submission and gallery.
+     One page, two zones: a private hand-in that holds your files in this browser session,
+     and a public gap gallery where you post one gap and reply to others.
+     Nothing is uploaded, stored, or sent anywhere. Everything resets when you reload.
+     Single self-contained file, ready for GitHub Pages. No API keys, no backend. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reading the Gap, hand-in and gallery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* Change this one line to recolor the whole accent. */
+    --accent:#79c7c0;
+    --accent-dim:#3a5e5b;
+    --bg:#0a0b0d;
+    --panel:#121317;
+    --panel-edge:#23252b;
+    --ink:#e9e9e6;
+    --ink-soft:#9a9b97;
+    --ink-faint:#63645f;
+    --mono:'IBM Plex Mono',ui-monospace,monospace;
+    --sans:'IBM Plex Sans',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-weight:300;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+    background-image:
+      radial-gradient(900px 500px at 75% -10%, rgba(121,199,192,0.06), transparent 60%),
+      radial-gradient(700px 500px at 0% 110%, rgba(121,199,192,0.04), transparent 55%);
+    background-attachment:fixed;
+  }
+  /* faint film grain for depth */
+  body::after{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:1;opacity:0.035;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .wrap{position:relative;z-index:2;max-width:980px;margin:0 auto;padding:0 24px 96px}
+
+  /* viewer chrome top bar */
+  .chrome{
+    display:flex;align-items:center;gap:14px;
+    padding:16px 0 14px;border-bottom:1px solid var(--panel-edge);
+    font-family:var(--mono);font-size:12px;color:var(--ink-faint);letter-spacing:0.04em;
+  }
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent-dim)}
+  .chrome .right{margin-left:auto}
+
+  header.hero{padding:64px 0 40px}
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:0.18em;text-transform:uppercase;color:var(--accent);margin:0 0 18px}
+  h1{font-family:var(--sans);font-weight:600;font-size:clamp(34px,6vw,58px);line-height:1.02;margin:0 0 18px;letter-spacing:-0.02em}
+  .lede{font-size:18px;color:var(--ink-soft);max-width:60ch;margin:0}
+
+  section.zone{margin-top:40px}
+  .zone-head{display:flex;align-items:baseline;gap:14px;margin:0 0 8px}
+  .zone-num{font-family:var(--mono);font-size:13px;color:var(--accent)}
+  .zone-head h2{font-family:var(--sans);font-weight:500;font-size:22px;margin:0;letter-spacing:-0.01em}
+  .zone-sub{color:var(--ink-soft);margin:0 0 22px;font-size:15px;max-width:64ch}
+
+  .panel{background:var(--panel);border:1px solid var(--panel-edge);border-radius:14px;padding:26px}
+
+  /* hand-in */
+  .grid{display:grid;grid-template-columns:1.05fr 0.95fr;gap:18px}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}}
+  .drop{
+    border:1.5px dashed var(--panel-edge);border-radius:12px;padding:30px 22px;text-align:center;
+    transition:border-color .2s,background .2s;cursor:pointer;background:rgba(255,255,255,0.012);
+  }
+  .drop.hot{border-color:var(--accent);background:rgba(121,199,192,0.05)}
+  .drop .big{font-family:var(--mono);font-size:13px;color:var(--ink);letter-spacing:0.02em}
+  .drop .small{font-size:13px;color:var(--ink-faint);margin-top:6px}
+  .filelist{margin:18px 0 0;padding:0;list-style:none}
+  .filelist li{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12.5px;color:var(--ink-soft);padding:7px 0;border-top:1px solid var(--panel-edge)}
+  .filelist li .x{margin-left:auto;color:var(--ink-faint);cursor:pointer;border:0;background:0;font-family:var(--mono);font-size:13px}
+  .filelist li .x:hover{color:var(--accent)}
+  .tick{color:var(--accent)}
+
+  .checklist{margin:0;padding:0;list-style:none}
+  .checklist li{display:flex;gap:11px;align-items:flex-start;padding:9px 0;font-size:14.5px;color:var(--ink-soft);border-top:1px solid var(--panel-edge)}
+  .checklist li:first-child{border-top:0}
+  .checklist .box{flex:0 0 auto;width:16px;height:16px;border:1px solid var(--ink-faint);border-radius:4px;margin-top:3px}
+  .checklist li.done .box{background:var(--accent);border-color:var(--accent);position:relative}
+  .checklist li.done .box::after{content:"";position:absolute;left:5px;top:1px;width:4px;height:9px;border:solid var(--bg);border-width:0 2px 2px 0;transform:rotate(45deg)}
+  .checklist li.done span{color:var(--ink)}
+  .checklist b{font-weight:500;color:var(--ink)}
+
+  button.act{
+    font-family:var(--mono);font-size:13px;letter-spacing:0.03em;
+    background:var(--accent);color:#08110f;border:0;border-radius:9px;
+    padding:12px 20px;cursor:pointer;margin-top:18px;transition:transform .08s,filter .2s;
+  }
+  button.act:hover{filter:brightness(1.08)}
+  button.act:active{transform:translateY(1px)}
+  button.act[disabled]{background:var(--panel-edge);color:var(--ink-faint);cursor:not-allowed}
+  .handin-msg{font-family:var(--mono);font-size:12.5px;color:var(--accent);margin-top:14px;min-height:18px}
+
+  /* gallery */
+  .post-form{display:grid;gap:12px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:620px){.row2{grid-template-columns:1fr}}
+  label.fld{font-family:var(--mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-faint);display:block;margin:0 0 6px}
+  input,textarea,select{
+    width:100%;background:#0d0e11;border:1px solid var(--panel-edge);border-radius:9px;
+    color:var(--ink);font-family:var(--sans);font-size:14.5px;padding:11px 13px;font-weight:300;
+  }
+  textarea{resize:vertical;min-height:74px;line-height:1.5}
+  input:focus,textarea:focus,select:focus{outline:0;border-color:var(--accent)}
+  select{font-family:var(--mono);font-size:13px}
+
+  .cards{display:grid;gap:14px;margin-top:26px}
+  .card{background:var(--panel);border:1px solid var(--panel-edge);border-radius:12px;padding:18px 20px;animation:rise .35s ease both}
+  @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .card .meta{display:flex;align-items:center;gap:10px;margin-bottom:9px;font-family:var(--mono);font-size:11.5px;color:var(--ink-faint)}
+  .pill{border:1px solid var(--accent-dim);color:var(--accent);border-radius:20px;padding:2px 9px;font-size:10.5px;letter-spacing:0.04em}
+  .pill.label{border-color:var(--panel-edge);color:var(--ink-soft)}
+  .card .gap{font-size:15.5px;color:var(--ink);margin:0}
+  .card .who{margin-left:auto;color:var(--ink-faint)}
+  .replies{margin:13px 0 0;padding:13px 0 0;border-top:1px solid var(--panel-edge);display:none}
+  .replies.open{display:block}
+  .reply{font-size:13.5px;color:var(--ink-soft);padding:5px 0}
+  .reply b{color:var(--ink);font-weight:500}
+  .replybar{display:flex;gap:8px;margin-top:8px}
+  .replybar input{font-size:13px;padding:8px 11px}
+  .replybar button{font-family:var(--mono);font-size:12px;background:0;border:1px solid var(--panel-edge);color:var(--ink-soft);border-radius:8px;padding:0 14px;cursor:pointer}
+  .replybar button:hover{border-color:var(--accent);color:var(--accent)}
+  .togglereplies{font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);background:0;border:0;cursor:pointer;margin-top:10px;padding:0}
+  .togglereplies:hover{color:var(--accent)}
+  .empty{color:var(--ink-faint);font-size:14px;font-style:italic;margin-top:24px}
+
+  footer{margin-top:56px;padding-top:26px;border-top:1px solid var(--panel-edge)}
+  .vr{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .vr .txt{flex:1;min-width:260px}
+  .vr h3{font-family:var(--sans);font-weight:500;font-size:17px;margin:0 0 5px}
+  .vr p{margin:0;color:var(--ink-soft);font-size:14px}
+  .vr a{display:inline-block;font-family:var(--mono);font-size:13px;color:#08110f;background:var(--accent);text-decoration:none;padding:11px 18px;border-radius:9px}
+  .vr a:hover{filter:brightness(1.08)}
+  .note{margin-top:26px;font-size:12.5px;color:var(--ink-faint);font-family:var(--mono);line-height:1.7}
+
+  .reveal{opacity:0;transform:translateY(10px);animation:reveal .6s ease forwards}
+  @keyframes reveal{to{opacity:1;transform:none}}
+</style>
+
+<div class="wrap">
+
+  <div class="chrome reveal" style="animation-delay:.02s">
+    <span class="dot"></span> READING&nbsp;THE&nbsp;GAP
+    <span class="right">hand-in / gallery</span>
+  </div>
+
+  <header class="hero reveal" style="animation-delay:.08s">
+    <p class="kicker">Critical AI Literacy · M.A. AI Innovation</p>
+    <h1>Hand in your work.<br>Share one gap.</h1>
+    <p class="lede">This page does two things. Above the line, a private hand-in that holds your files in this browser only. Below it, a shared gallery where you post one gap and read others. Nothing leaves your machine, and everything clears when you reload.</p>
+  </header>
+
+  <!-- ZONE A -->
+  <section class="zone reveal" style="animation-delay:.16s">
+    <div class="zone-head"><span class="zone-num">01</span><h2>Your hand-in</h2></div>
+    <p class="zone-sub">Drop your files here. They stay in this browser session, they are not uploaded. The checklist ticks itself as it recognizes each piece by name.</p>
+    <div class="panel grid">
+      <div>
+        <div class="drop" id="drop">
+          <input type="file" id="file" multiple style="display:none">
+          <div class="big">drop files, or click to choose</div>
+          <div class="small">prompts.md · my-interpretation.md · screenshot-reading.md · peer-reading.md · your image · final-prompt.md · your reflection</div>
+        </div>
+        <ul class="filelist" id="filelist"></ul>
+        <button class="act" id="submit" disabled>hand in</button>
+        <div class="handin-msg" id="handinmsg"></div>
+      </div>
+      <div>
+        <ul class="checklist" id="checklist">
+          <li data-key="prompts"><span class="box"></span><span><b>prompts.md</b>, your prompt record</span></li>
+          <li data-key="interpretation"><span class="box"></span><span><b>my-interpretation.md</b>, your own reading first</span></li>
+          <li data-key="screenshot-reading"><span class="box"></span><span><b>screenshot-reading.md</b>, the model's reading</span></li>
+          <li data-key="peer-reading"><span class="box"></span><span><b>peer-reading.md</b>, the second agent</span></li>
+          <li data-key="image"><span class="box"></span><span><b>your generated image</b> and site screenshots</span></li>
+          <li data-key="final-prompt"><span class="box"></span><span><b>final-prompt.md</b>, the master prompt</span></li>
+          <li data-key="reflection"><span class="box"></span><span><b>your reflection</b>, prose, about 600 to 1000 words</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ZONE B -->
+  <section class="zone reveal" style="animation-delay:.24s">
+    <div class="zone-head"><span class="zone-num">02</span><h2>The gap gallery</h2></div>
+    <p class="zone-sub">Post one gap, where a tool's reading parted from what you meant, then read what others found and reply to two. A second pair of eyes on your own work. Posts stay in this session.</p>
+    <div class="panel">
+      <div class="post-form">
+        <div class="row2">
+          <div>
+            <label class="fld" for="pname">your name (optional)</label>
+            <input id="pname" placeholder="anon">
+          </div>
+          <div>
+            <label class="fld" for="ptool">which tool</label>
+            <select id="ptool">
+              <option>the model's reading</option>
+              <option>the second agent</option>
+              <option>the image generator</option>
+              <option>the 2D/3D site</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="fld" for="pgap">the gap you noticed</label>
+          <textarea id="pgap" placeholder="What did the tool give you that parted from what you meant?"></textarea>
+        </div>
+        <div class="row2">
+          <div>
+            <label class="fld" for="plabel">how sure are you</label>
+            <select id="plabel">
+              <option>I can point to it</option>
+              <option>I'm assuming it</option>
+              <option>I can't explain it</option>
+            </select>
+          </div>
+          <div style="display:flex;align-items:flex-end">
+            <button class="act" id="post" style="margin-top:0;width:100%">post to gallery</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="cards" id="cards"></div>
+    <p class="empty" id="empty">No gaps posted yet. Yours can be the first.</p>
+  </section>
+
+  <!-- FOOTER: optional VR meetup -->
+  <footer class="reveal" style="animation-delay:.3s">
+    <div class="vr">
+      <div class="txt">
+        <h3>Optional live meetup, in VR</h3>
+        <p>Once a term we meet in a shared 360 space to put one person's gap in front of the room and read it together. Optional, recorded, with extra participation credit.</p>
+      </div>
+      <a href="https://workshop.reframing.online" target="_blank" rel="noopener">enter the room →</a>
+    </div>
+    <p class="note">
+      Privacy: this page stores nothing and sends nothing. Files and posts live in your browser for this session only and clear on reload.<br>
+      Built for the unit "Reading the Gap." Replace the accent in one line at the top of the style block to recolor.
+    </p>
+  </footer>
+
+</div>
+
+<script>
+  // ---- everything in memory, nothing persisted ----
+  var handed = [];      // File objects in this session
+  var posts = [];       // gallery posts in this session
+
+  var keys = {
+    "prompts.md":"prompts","my-interpretation":"interpretation",
+    "screenshot-reading":"screenshot-reading","peer-reading":"peer-reading",
+    "final-prompt":"final-prompt"
+  };
+  function classify(name){
+    var n = name.toLowerCase();
+    if(n.indexOf("prompts.md")>-1) return "prompts";
+    if(n.indexOf("my-interpretation")>-1||n.indexOf("interpretation")>-1) return "interpretation";
+    if(n.indexOf("screenshot-reading")>-1) return "screenshot-reading";
+    if(n.indexOf("peer-reading")>-1) return "peer-reading";
+    if(n.indexOf("final-prompt")>-1) return "final-prompt";
+    if(n.match(/\.(png|jpg|jpeg|gif|webp)$/)) return "image";
+    if(n.indexOf("reflection")>-1) return "reflection";
+    return null;
+  }
+
+  var drop=document.getElementById('drop'),
+      fileInput=document.getElementById('file'),
+      fileList=document.getElementById('filelist'),
+      submitBtn=document.getElementById('submit'),
+      handinMsg=document.getElementById('handinmsg');
+
+  drop.addEventListener('click',function(){fileInput.click()});
+  fileInput.addEventListener('change',function(e){addFiles(e.target.files)});
+  ['dragover','dragenter'].forEach(function(ev){
+    drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.add('hot')});
+  });
+  ['dragleave','drop'].forEach(function(ev){
+    drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.remove('hot')});
+  });
+  drop.addEventListener('drop',function(e){addFiles(e.dataTransfer.files)});
+
+  function addFiles(list){
+    for(var i=0;i<list.length;i++){ handed.push(list[i]); }
+    renderFiles(); renderChecklist();
+    submitBtn.disabled = handed.length===0;
+    handinMsg.textContent='';
+  }
+  function renderFiles(){
+    fileList.innerHTML='';
+    handed.forEach(function(f,idx){
+      var li=document.createElement('li');
+      li.innerHTML='<span class="tick">✓</span>'+f.name;
+      var x=document.createElement('button'); x.className='x'; x.textContent='remove';
+      x.onclick=function(){handed.splice(idx,1);renderFiles();renderChecklist();submitBtn.disabled=handed.length===0;};
+      li.appendChild(x); fileList.appendChild(li);
+    });
+  }
+  function renderChecklist(){
+    var present={};
+    handed.forEach(function(f){var c=classify(f.name); if(c)present[c]=true;});
+    document.querySelectorAll('#checklist li').forEach(function(li){
+      if(present[li.getAttribute('data-key')]) li.classList.add('done');
+      else li.classList.remove('done');
+    });
+  }
+  submitBtn.addEventListener('click',function(){
+    if(!handed.length) return;
+    handinMsg.textContent='Handed in '+handed.length+' file'+(handed.length>1?'s':'')+' for this session. (Demo, nothing is uploaded.)';
+  });
+
+  // ---- gallery ----
+  var cards=document.getElementById('cards'),
+      empty=document.getElementById('empty'),
+      postBtn=document.getElementById('post');
+
+  postBtn.addEventListener('click',function(){
+    var gap=document.getElementById('pgap').value.trim();
+    if(!gap){document.getElementById('pgap').focus();return;}
+    posts.unshift({
+      name:document.getElementById('pname').value.trim()||'anon',
+      tool:document.getElementById('ptool').value,
+      label:document.getElementById('plabel').value,
+      gap:gap, replies:[]
+    });
+    document.getElementById('pgap').value='';
+    document.getElementById('pname').value='';
+    renderCards();
+  });
+
+  function renderCards(){
+    empty.style.display = posts.length? 'none':'block';
+    cards.innerHTML='';
+    posts.forEach(function(p,idx){
+      var card=document.createElement('div'); card.className='card';
+      var head='<div class="meta"><span class="pill">'+esc(p.tool)+'</span>'+
+               '<span class="pill label">'+esc(p.label)+'</span>'+
+               '<span class="who">'+esc(p.name)+'</span></div>';
+      var body='<p class="gap">'+esc(p.gap)+'</p>';
+      var toggle='<button class="togglereplies">replies ('+p.replies.length+')</button>';
+      var rep='<div class="replies"><div class="replist"></div>'+
+              '<div class="replybar"><input placeholder="reply to this gap"><button>reply</button></div></div>';
+      card.innerHTML=head+body+toggle+rep;
+      cards.appendChild(card);
+
+      var repWrap=card.querySelector('.replies'),
+          repList=card.querySelector('.replist'),
+          tBtn=card.querySelector('.togglereplies'),
+          rInput=card.querySelector('.replybar input'),
+          rBtn=card.querySelector('.replybar button');
+      drawReplies();
+      tBtn.onclick=function(){repWrap.classList.toggle('open');};
+      rBtn.onclick=function(){ var t=rInput.value.trim(); if(!t)return; p.replies.push(t); rInput.value=''; drawReplies(); tBtn.textContent='replies ('+p.replies.length+')'; };
+      function drawReplies(){
+        repList.innerHTML = p.replies.map(function(r){return '<div class="reply"><b>·</b> '+esc(r)+'</div>';}).join('');
+      }
+    });
+  }
+  function esc(s){return s.replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+</script>
